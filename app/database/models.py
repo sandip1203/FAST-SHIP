@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field,Column,DateTime
 from enum import Enum
 from datetime import datetime
 from typing import Optional
@@ -22,4 +22,6 @@ class Shipment(SQLModel, table=True):
 
     status: ShipmentStatus = Field(default=ShipmentStatus.placed)
 
-    estimated_delivery: Optional[datetime] = None
+    estimated_delivery: Optional[datetime] = Field(
+    sa_column=Column(DateTime(timezone=True), nullable=True)
+)
