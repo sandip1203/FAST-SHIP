@@ -1,7 +1,7 @@
 import sqlite3
 from typing import Any
 
-from app.schemas import ShipmentCreate, ShipmentUpdate  # type: ignore
+from app.api.schemas.shipment import ShipmentCreate, ShipmentUpdate  # type: ignore
 
 
 class Database:
