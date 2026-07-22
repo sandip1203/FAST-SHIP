@@ -1,3 +1,4 @@
+from pydantic import EmailStr
 from sqlmodel import SQLModel, Field,Column,DateTime
 from enum import Enum
 from datetime import datetime
@@ -25,3 +26,10 @@ class Shipment(SQLModel, table=True):
     estimated_delivery: Optional[datetime] = Field(
     sa_column=Column(DateTime(timezone=True), nullable=True)
 )
+    
+    
+class Seller(SQLModel, table=True):
+    id:int= Field(default=None,primary_key=True)
+    name:str
+    email:EmailStr
+    password_hash:str
