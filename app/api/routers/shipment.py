@@ -1,57 +1,60 @@
-from fastapi import APIRouter,Depends,HTTPException,status
-from app.api.dependencies import ServiceDep, get_shipment_service
-from app.database.models import Shipment, ShipmentStatus
-from app.database.session import create_db_tables, SessionDep
-from app.api.schemas.shipment import ShipmentCreate, ShipmentRead, ShipmentUpdate
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException, status
 
-from app.services.shipment import ShipmentServices
-
-router = APIRouter(
-    prefix='/shipment',
-    tags=['Shipment'])
+from ..dependencies import SellerDep, ShipmentServiceDep
+from ..schemas.shipment import ShipmentCreate, ShipmentRead, ShipmentUpdate
 
 
-@router.post("/shipments", response_model=ShipmentRead)
-async def create_shipment(
-    shipment: ShipmentCreate,
-    service: ServiceDep
-):
-    return await service.add(shipment)
+router = APIRouter(prefix="/shipment", tags=["Shipment"])
 
 
-@router.get("/shipments/{shipment_id}", response_model=ShipmentRead)
-async def get_shipment(
-    shipment_id: int,
-    service: ServiceDep
-):
-    shipment = await service.get(shipment_id)
+### Read a shipment by id
+@router.get("/", response_model=ShipmentRead)
+async def get_shipment(id: int, service: ShipmentServiceDep):
+    # Check for shipment with given id
+    shipment = await service.get(id)
 
     if shipment is None:
-        raise HTTPException(status_code=404, detail="Shipment not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Given id doesn't exist!",
+        )
 
     return shipment
 
 
-@router.patch("/shipments/{shipment_id}", response_model=ShipmentRead)
+### Create a new shipment with content and weight
+@router.post("/", response_model=ShipmentRead)
+async def submit_shipment(
+    seller: SellerDep,
+    shipment: ShipmentCreate,
+    service: ShipmentServiceDep,
+):
+    return await service.add(shipment)
+
+
+### Update fields of a shipment
+@router.patch("/", response_model=ShipmentRead)
 async def update_shipment(
-    shipment_id: int,
+    id: int,
     shipment_update: ShipmentUpdate,
-    service: ServiceDep,
+    service: ShipmentServiceDep,
 ):
-    update_data = shipment_update.model_dump(exclude_none=True)
+    # Update data with given fields
+    update = shipment_update.model_dump(exclude_none=True)
 
-    if not update_data:
-        raise HTTPException(status_code=400, detail="No data provided")
+    if not update:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No data provided to update",
+        )
 
-    return await service.update(shipment_id, update_data)
+    return await service.update(id, update)
 
 
-@router.delete("/shipments/{shipment_id}")
-async def delete_shipment(
-    shipment_id: int,
-    service: ServiceDep,
-):
-    await service.delete(shipment_id)
-    return {"detail": f"shipment #{shipment_id} deleted"}
+### Delete a shipment by id
+@router.delete("/")
+async def delete_shipment(id: int, service: ShipmentServiceDep) -> dict[str, str]:
+    # Remove from database
+    await service.delete(id)
 
+    return {"detail": f"Shipment with id #{id} is deleted!"}
