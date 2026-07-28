@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
+from sqlalchemy import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import oauth2_scheme
@@ -33,7 +34,7 @@ async def get_current_seller(
     token_data: Annotated[dict, Depends(get_access_token)],
     session: SessionDep,
 ):
-    return await session.get(Seller, token_data["user"]["id"])
+    return await session.get(Seller,token_data["user"]["id"])
 
 
 # Shipment service dep
