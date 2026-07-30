@@ -1,8 +1,7 @@
 from uuid import UUID
-
 from fastapi import APIRouter, HTTPException, status
 
-from ..dependencies import SellerDep, ShipmentServiceDep
+from ..dependencies import DeliveryPartnerDep, SellerDep, ShipmentServiceDep
 from ..schemas.shipment import ShipmentCreate, ShipmentRead, ShipmentUpdate
 
 
@@ -24,14 +23,14 @@ async def get_shipment(id: UUID, service: ShipmentServiceDep):
     return shipment
 
 
-### Create a new shipment with content and weight
+### Create a new shipment
 @router.post("/", response_model=ShipmentRead)
 async def submit_shipment(
     seller: SellerDep,
     shipment: ShipmentCreate,
     service: ShipmentServiceDep,
 ):
-    return await service.add(shipment,seller)
+    return await service.add(shipment, seller)
 
 
 ### Update fields of a shipment
@@ -39,6 +38,7 @@ async def submit_shipment(
 async def update_shipment(
     id: UUID,
     shipment_update: ShipmentUpdate,
+    partner: DeliveryPartnerDep,
     service: ShipmentServiceDep,
 ):
     # Update data with given fields
@@ -49,8 +49,20 @@ async def update_shipment(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No data provided to update",
         )
+    
+    # Validate logged in parter with assigned partner
+    # on the shipment with given id
+    shipment = await service.get(id)
 
-    return await service.update(id, update)
+    if shipment.delivery_partner_id != partner.id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authorized",
+        )
+
+    return await service.update(
+        shipment.sqlmodel_update(shipment_update),
+    )
 
 
 ### Delete a shipment by id

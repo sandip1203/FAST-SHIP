@@ -13,8 +13,9 @@ class DatabaseSettings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
-    REDIS_HOST:str
-    REDIS_PORT:int
+
+    REDIS_HOST: str
+    REDIS_PORT: str
 
     model_config = _base_config
 
@@ -22,11 +23,7 @@ class DatabaseSettings(BaseSettings):
     def POSTGRES_URL(self):
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
-    @property
-    def SYNC_POSTGRES_URL(self):
-        #  For Alembic (SYNC)
-        return f"postgresql+psycopg2://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
-    
+
 class SecuritySettings(BaseSettings):
 
     JWT_SECRET: str

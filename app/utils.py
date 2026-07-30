@@ -13,7 +13,7 @@ def generate_access_token(
     return jwt.encode(
         payload={
             **data,
-            "jti":str(uuid4()),
+            "jti": str(uuid4()),
             "exp": datetime.now(timezone.utc) + expiry,
         },
         algorithm=security_settings.JWT_ALGORITHM,
