@@ -10,18 +10,22 @@ from app.database.session import create_db_tables
 @asynccontextmanager
 async def lifespan_handler(app: FastAPI):
     await create_db_tables()
-    yield
+    app.state.db_ready = True
+    try:
+        yield
+    finally:
+        app.state.db_ready = False
 
 
 app = FastAPI(
-    # Server start/stop listener
+    title="FAST-SHIP",
+    version="1.0.0",
     lifespan=lifespan_handler,
 )
 
 app.include_router(master_router)
 
 
-### Scalar API Documentation
 @app.get("/scalar", include_in_schema=False)
 def get_scalar_docs():
     return get_scalar_api_reference(

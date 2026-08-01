@@ -1,7 +1,8 @@
-from typing import Sequence
+from collections.abc import Sequence
 
-from fastapi import HTTPException, status
-from sqlmodel import select, any_
+from fastapi import HTTPException
+from sqlalchemy.orm import selectinload
+from sqlmodel import any_, select
 
 from app.api.schemas.delivery_partner import DeliveryPartnerCreate
 from app.database.models import DeliveryPartner, Shipment
@@ -25,20 +26,25 @@ class DeliveryPartnerService(UserService):
             )
         ).all()
     
-    async def assign_shipment(self, shipment: Shipment):
-        eligible_partners = await self.get_partner_by_zipcode(shipment.destination)
-        
-        for partner in eligible_partners:
+    async def assign_shipment(self, shipment, seller):
+        result = await self.session.execute(
+            select(DeliveryPartner)
+            .options(
+                selectinload(DeliveryPartner.shipments).selectinload(Shipment.timeline)
+            )
+            .where(
+                DeliveryPartner.serviceable_zip_codes.contains([shipment.destination])
+            )
+        )
+
+        partners = result.scalars().all()
+
+        for partner in partners:
             if partner.current_handling_capacity > 0:
-                partner.shipments.append(shipment)
+                # assign shipment here
                 return partner
 
-        # If no eliglible partners found or
-        # parters have reached max handling capacity
-        raise HTTPException(
-            status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail="No delivery partner available",
-        )
+        raise HTTPException(status_code=400, detail="No delivery partner available")
 
     async def update(self, partner: DeliveryPartner):
         return await self._update(partner)
