@@ -9,8 +9,9 @@ from alembic import context
 from sqlmodel import SQLModel
 
 from app.config import db_settings
-from app.database.models import Shipment, Seller, DeliveryPartner
+from app.database.models import *
 
+target_metadata = SQLModel.metadata
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
