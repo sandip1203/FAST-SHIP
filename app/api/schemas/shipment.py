@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.database.models import ShipmentEvent, ShipmentStatus
 
@@ -21,7 +21,8 @@ class ShipmentRead(BaseShipment):
 
 
 class ShipmentCreate(BaseShipment):
-    pass
+    client_contact_email: EmailStr
+    client_contact_phone:int |None = Field(default=None)
     
 
 class ShipmentUpdate(BaseModel):

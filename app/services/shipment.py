@@ -11,6 +11,8 @@ from app.services.shipment_event import ShipmentEventService
 
 from .base import BaseService
 from .delivery_partner import DeliveryPartnerService
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 
 class ShipmentService(BaseService):
@@ -26,19 +28,24 @@ class ShipmentService(BaseService):
 
     # Get a shipment by id
     async def get(self, id: UUID) -> Shipment | None:
-        return await self._get(id)
+        # Eager-load timeline to avoid async lazy-loading outside a greenlet
+        stmt = select(Shipment).options(selectinload(Shipment.timeline)).where(Shipment.id == id)
+        result = await self.session.execute(stmt)
+        return result.scalars().one_or_none()
 
     def _attach_timeline(self, shipment: Shipment, event: ShipmentEvent | None = None) -> None:
+        # Avoid ORM lazy-loading by mutating the underlying dict directly.
         timeline = shipment.__dict__.get("timeline")
         if timeline is None:
             timeline = []
-        elif not isinstance(timeline, list):
+            shipment.__dict__["timeline"] = timeline
+
+        if not isinstance(timeline, list):
             timeline = list(timeline)
+            shipment.__dict__["timeline"] = timeline
 
         if event is not None and event not in timeline:
             timeline.append(event)
-
-        shipment.__dict__["timeline"] = timeline
 
     # Add a new shipment
     async def add(self, shipment_create: ShipmentCreate, seller: Seller) -> Shipment:
