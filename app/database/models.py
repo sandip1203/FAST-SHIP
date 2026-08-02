@@ -36,7 +36,11 @@ class Shipment(SQLModel, table=True):
             default=utc_now,
         )
     )
-
+    
+    client_contact_email :EmailStr | None
+    client_contafct_phone:int | None
+    
+    
     content: str
     weight: float = Field(le=25)
     destination: int
