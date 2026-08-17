@@ -96,13 +96,13 @@ def get_shipment_service(session: SessionDep,
 
 
 # Seller service dep
-def get_seller_service(session: SessionDep):
-    return SellerService(session)
+def get_seller_service(session: SessionDep,tasks:BackgroundTasks):
+    return SellerService(session,tasks)
 
 
 # Delivery partner service dep
-def get_delivery_partner_service(session: SessionDep):
-    return DeliveryPartnerService(session)
+def get_delivery_partner_service(session: SessionDep,tasks:BackgroundTasks):
+    return DeliveryPartnerService(session,tasks)
 
 
 # Seller dep annotation

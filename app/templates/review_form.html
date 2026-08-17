@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Your Shipment</title>
+</head>
+<body style="font-family: Arial, sans-serif; background: #f5f7fb; margin: 0; padding: 32px;">
+    <div style="max-width: 560px; margin: 40px auto; background: #ffffff; border-radius: 12px; padding: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+        <h2 style="margin-top: 0; color: #111827;">Rate Your Shipment</h2>
+
+        <form action="{{review_url}}" method="post">
+            <div style="margin-bottom: 16px;">
+                <label for="rating" style="display: block; margin-bottom: 8px; font-weight: bold; color: #374151;">Rating</label>
+                <input
+                    type="number"
+                    id="rating"
+                    name="rating"
+                    min="1"
+                    max="5"
+                    required
+                    placeholder="1 to 5"
+                    style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box;"
+                >
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label for="comment" style="display: block; margin-bottom: 8px; font-weight: bold; color: #374151;">Comment</label>
+                <textarea
+                    id="comment"
+                    name="comment"
+                    rows="4"
+                    placeholder="Tell us about your experience"
+                    style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; resize: vertical; box-sizing: border-box;"
+                ></textarea>
+            </div>
+
+            <button type="submit" style="background-color: #2563eb; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                Submit Review
+            </button>
+        </form>
+    </div>
+</body> 
+</html>
