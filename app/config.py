@@ -27,6 +27,8 @@ class DatabaseSettings(BaseSettings):
     def POSTGRES_URL(self):
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
+    def REDIS_URL(self,db):
+        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{db}"
 
 class SecuritySettings(BaseSettings):
 
