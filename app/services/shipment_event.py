@@ -3,6 +3,8 @@ from sqlmodel import select
 from app.database.models import Shipment, ShipmentEvent, ShipmentStatus
 from app.services.base import BaseService
 from app.services.notification import NotificationService
+from app.config import app_settings
+from app.utils import generate_url_safe_token
 
 
 class ShipmentEventService(BaseService):
@@ -76,6 +78,8 @@ class ShipmentEventService(BaseService):
             case ShipmentStatus.placed:
                         subject="your order is shipped"
                         context["id"]= shipment.id
+                        token = generate_url_safe_token({"id":str(shipment.id)})
+                        context["review_url"] =f"http://{app_settings.APP_DOMAIN}/shipment/review?token={token}"
                         context["seller"]=shipment.seller.name
                         context["partner"]=shipment.delivery_partner.name
                         template_name="mail_placed.html"
