@@ -1,10 +1,14 @@
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
-from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.schemas.shipment import ShipmentCreate, ShipmentReview, ShipmentUpdate
+from app.core.exceptations import (
+    AuthorizationError,
+    AuthenticationError,
+    ShipmentNotFound,
+)
 from app.database.models import (DeliveryPartner, Review, Seller, Shipment,
                                  ShipmentEvent, ShipmentStatus)
 from app.services.shipment_event import ShipmentEventService
@@ -82,12 +86,11 @@ class ShipmentService(BaseService):
                 # Validate logged in parter with assigned partner
         # on the shipment with given id
         shipment = await self.get(id)
+        if shipment is None:
+            raise ShipmentNotFound(f"Shipment with id {id} not found")
 
         if shipment.delivery_partner_id != partner.id:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Not authorized",
-            )
+            raise AuthorizationError("Not authorized")
         update = shipment_update.model_dump(exclude_none=True)
         
         if shipment_update.estimated_delivery:
@@ -105,11 +108,10 @@ class ShipmentService(BaseService):
     async def rate(self,token:str,review:ShipmentReview):
         token_data = decode_url_safe_token(token)
         if not token_data:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Not Authorized"
-            )
-        shipment = self.get(UUID(token_data['id']))
+            raise AuthenticationError("Not authorized")
+        shipment = await self.get(UUID(token_data['id']))
+        if shipment is None:
+            raise ShipmentNotFound(f"Shipment with id {token_data['id']} not found")
         new_review = Review(
             **review.model_dump(),
             shipment_id = shipment.id)
@@ -120,12 +122,11 @@ class ShipmentService(BaseService):
     async def cancel (self,id:UUID,seller:Seller)->Shipment:
         ## validate the seller 
         shipment = await self.get(id)
-        
+        if shipment is None:
+            raise ShipmentNotFound(f"Shipment with id {id} not found")
+
         if shipment.seller_id != seller.id:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=" Not Authorized"
-            )
+            raise AuthorizationError("Not authorized")
         event = await self.event_service.add(
             shipment=shipment,
             status=ShipmentStatus.cancalled,
